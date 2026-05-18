@@ -9,7 +9,7 @@
     * { box-sizing:border-box; }
     body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:var(--bg); color:var(--ink); }
     header { background:rgba(247,247,251,.96); border-bottom:1px solid var(--line); }
-    .wrap { max-width:1180px; margin:0 auto; padding:18px; }
+    .wrap { width:min(1760px, calc(100% - 32px)); max-width:none; margin:0 auto; padding:18px 0; }
     h1 { margin:8px 0 14px; font-size:32px; line-height:1.2; text-align:center; }
     .subbar { display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin:12px 0; }
     .sets { display:grid; grid-template-columns:repeat(auto-fill, minmax(132px, 1fr)); gap:10px; padding:12px; background:#fff; border:1px solid var(--line); border-radius:14px; }
@@ -31,8 +31,8 @@
     .question-card.answer-wrong { border:2px solid var(--bad); box-shadow:0 6px 18px rgba(180,35,24,.12); }
     .question-card.answer-correct { border-color:#6ee7b7; }
     .question-inner { display:block; }
-    .question-card.checked .question-inner { display:grid; grid-template-columns:minmax(0, 1fr) 390px; }
-    .left, .right { padding:18px; }
+    .question-card.checked .question-inner { display:grid; grid-template-columns:minmax(460px, .9fr) minmax(640px, 1.15fr); }
+    .left, .right { padding:22px; }
     .right { border-left:1px solid var(--line); background:#fbfcff; display:none; }
     .question-card.checked .right { display:block; }
     .qid { font-weight:850; color:var(--primary); margin-bottom:8px; }
@@ -46,11 +46,15 @@
     .option input { margin-top:3px; }
     .actions { margin-top:12px; display:flex; gap:8px; align-items:center; }
     .answer { font-size:18px; font-weight:850; color:var(--good); }
-    .explain { margin-top:12px; line-height:1.55; color:#344054; }
-    .explain h4 { margin:12px 0 6px; }
+    .explain { margin-top:12px; line-height:1.68; color:#344054; font-size:15.5px; }
+    .explain h4 { margin:18px 0 8px; font-size:17px; color:#182230; }
+    .explain h5 { margin:14px 0 6px; font-size:15.5px; color:#182230; }
+    .explain-list { padding-left:22px; }
+    .explain-list li { margin:8px 0; }
+    .analysis-box { border:1px solid var(--line); border-radius:14px; background:#fff; padding:12px 14px; margin:10px 0; }
     .pill { display:inline-block; font-size:12px; padding:4px 8px; border-radius:99px; background:#eef4ff; color:#3538cd; font-weight:700; }
     .empty { text-align:center; padding:50px 20px; color:var(--muted); }
-    @media (max-width: 860px) {
+    @media (max-width: 1180px) {
       h1 { font-size:24px; }
       .question-card.checked .question-inner { grid-template-columns:1fr; }
       .right { border-left:0; border-top:1px solid var(--line); }
@@ -253,40 +257,45 @@ function makeExplanation(q) {
   let lines = [];
 
   lines.push(`<h4>1. Dịch đầy đủ toàn bộ câu hỏi</h4>`);
-  lines.push(`<p>${escapeHtml(questionVi)}</p>`);
+  lines.push(`<div class="analysis-box"><p>${escapeHtml(questionVi)}</p></div>`);
 
   lines.push(`<h4>2. Dịch đầy đủ tất cả các đáp án lựa chọn</h4>`);
   if(q.options && Object.keys(q.options).length) {
-    lines.push('<ul class="explain-list">');
+    lines.push('<div class="analysis-box"><ul class="explain-list">');
     for (const [k,v] of Object.entries(q.options)) {
-      lines.push(`<li><strong>${escapeHtml(k)}.</strong> ${escapeHtml(v)}<br><em>→ ${escapeHtml(translatePmpText(v))}</em></li>`);
+      lines.push(`<li><strong>${escapeHtml(k)}. ${escapeHtml(v)}</strong><br><em>→ ${escapeHtml(translatePmpText(v))}</em></li>`);
     }
-    lines.push('</ul>');
+    lines.push('</ul></div>');
   } else {
-    lines.push('<p>Câu dạng kéo-thả/hotspot/hình ảnh. File PDF gốc có phần đáp án dạng hình, nên trang web chỉ hiển thị phần text parse được.</p>');
+    lines.push('<div class="analysis-box"><p>Câu dạng kéo-thả/hotspot/hình ảnh. File PDF gốc có phần đáp án dạng hình, nên trang web chỉ hiển thị phần text parse được.</p></div>');
   }
 
   lines.push(`<h4>3. Phân tích</h4>`);
-  lines.push(`<p><strong>Knowledge Area + Process:</strong><br>${escapeHtml(info.area)}<br>${escapeHtml(info.process)}</p>`);
-  lines.push(`<p><strong>Đáp án đúng:</strong> ${escapeHtml(q.correct || 'Không parse được từ PDF')}</p>`);
 
-  lines.push(`<h4>Phân tích đáp án đúng</h4>`);
-  lines.push(`<p>${escapeHtml(info.correctLogic)}</p>`);
-  lines.push(`<p><strong>Keyword PMP:</strong> ${escapeHtml(info.keywords)}</p>`);
+  lines.push(`<h5>Knowledge Area + Process</h5>`);
+  lines.push(`<div class="analysis-box"><p><strong>${escapeHtml(info.area)}</strong><br>${escapeHtml(info.process)}</p></div>`);
 
-  lines.push(`<h4>Phân tích đáp án sai</h4>`);
+  lines.push(`<h5>Đáp án đúng</h5>`);
+  lines.push(`<div class="analysis-box"><p><strong>${escapeHtml(q.correct || 'Không parse được từ PDF')}</strong></p></div>`);
+
+  lines.push(`<h5>Phân tích đáp án đúng</h5>`);
+  lines.push(`<div class="analysis-box"><p>${escapeHtml(info.correctLogic)}</p><p><strong>Keyword PMP:</strong> ${escapeHtml(info.keywords)}</p></div>`);
+
+  lines.push(`<h5>Phân tích đáp án sai</h5>`);
   if(q.options && Object.keys(q.options).length) {
+    lines.push('<div class="analysis-box">');
     for (const [k,v] of Object.entries(q.options)) {
       const ok = correct.includes(k);
       if(ok) continue;
-      lines.push(`<p><strong>${escapeHtml(k)}.</strong> ${escapeHtml(v)}<br>❌ ${escapeHtml(wrongOptionReason(info, v))}</p>`);
+      lines.push(`<p><strong>${escapeHtml(k)}. ${escapeHtml(v)}</strong><br>❌ ${escapeHtml(wrongOptionReason(info, v))}</p>`);
     }
+    lines.push('</div>');
   } else {
-    lines.push('<p>Với câu dạng kéo-thả/hotspot, cần đối chiếu trực tiếp hình ảnh đáp án trong PDF gốc.</p>');
+    lines.push('<div class="analysis-box"><p>Với câu dạng kéo-thả/hotspot, cần đối chiếu trực tiếp hình ảnh đáp án trong PDF gốc.</p></div>');
   }
 
-  lines.push(`<h4>Bẫy / mẹo PMP</h4>`);
-  lines.push(`<p>${escapeHtml(info.trap)}</p>`);
+  lines.push(`<h5>Bẫy/mẹo PMP</h5>`);
+  lines.push(`<div class="analysis-box"><p>${escapeHtml(info.trap)}</p></div>`);
   return lines.join('');
 }
 
